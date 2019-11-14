@@ -26,7 +26,7 @@ from math import *
 # +---+---+------+----+--------+
 
 #Set constants
-d2 = 1
+d2 = 2
 
 #Initialize user input variables
 theta1 = -1000
@@ -123,42 +123,31 @@ simulation = plt.figure()
 axis = p3.Axes3D(simulation)
 
 # Setting the axes properties
-axis.set_xlim3d([-10, 10])
+axis.set_xlim3d([-5, 5])
 axis.set_xlabel('X')
-axis.set_ylim3d([-10, 10])
+axis.set_ylim3d([-5, 5])
 axis.set_ylabel('Y')
-axis.set_zlim3d([-10, 10])
+axis.set_zlim3d([0, 5])
 axis.set_zlabel('Z')
 axis.set_title('Project 2 Simulation')
 
 def animate(frame):
-    # Construct DH table
-    DH = [[0, 0, 0, radians(theta1s[frame])], [0, -pi/2, d2, pi/2 + radians(theta2s[frame])], [0, pi/2, d3s[frame], 0], [0, 0, 0, radians(theta4s[frame])], [0, -pi/2, 0, pi/2 + radians(theta5s[frame])], [0, pi/2, 0, radians(theta6s[frame])]]
+    # Construct DH table with extra dummy links for simulation
+    DH = [[0, 0, 3, radians(theta1s[frame])], [0, -pi/2, d2, pi/2 + radians(theta2s[frame])], [0, pi/2, d3s[frame], 0], [0, 0, 0, radians(theta4s[frame])], [0, -pi/2, 0, pi/2 + radians(theta5s[frame])], [0, pi/2, 0, radians(theta6s[frame])], [0, 0, .5, 0]]
 
     # Calculate transform matricies
     T = []
-    for i in range(6):
+    for i in range(7):
         T.append([[cos(DH[i][3]), -1*sin(DH[i][3]), 0, DH[i][0]], [sin(DH[i][3])*cos(DH[i][1]), cos(DH[i][3])*cos(DH[i][1]), -1*sin(DH[i][1]), -1*DH[i][2]*sin(DH[i][1])], [sin(DH[i][3])*sin(DH[i][1]), cos(DH[i][3])*sin(DH[i][1]), cos(DH[i][1]), cos(DH[i][1])*DH[i][2]], [0, 0, 0, 1]])
 
 
     # Assign frames necessary to draw robot body
     Frame0 = np.array([0, 0, 0, 1])
-
-    Frame1_1 = np.array([-2, 0, 0, 1])
-    Frame1_2 = np.array([-2, 0, 2, 1])
-    Frame1_3 = np.array([-2, 2, 2, 1])
-    Frame1_4 = np.array([0, 2, 2, 1])
-    Frame1_5 = np.array([0, 1, 2, 1])
-
-    Frame2_1 = np.array([1, 1, 2, 1])
-
-    #Frame3_1 = np.array([1, 1, 2, 1])
-
-    #Assign true frames
-    F0 = np.array([0, 0, 2, 1])
-    F1 = np.array([0, d2, 2, 1])
-    F2 = np.array([1, d2, 2, 1])
-
+    EEFrame1 = np.array([0, .3, 0, 1])
+    EEFrame2 = np.array([0, -.3, 0, 1])
+    EEFrame3 = np.array([0, .3, .2, 1])
+    EEFrame4 = np.array([0, -.3, .2, 1])
+    Frame0_2 = np.array([0, 0, 3, 1])
 
     # Find transformation matricies from frame 0 to every other frame
     H1 = np.array(T[0])
@@ -167,40 +156,46 @@ def animate(frame):
     H4 = np.dot(H3, np.array(T[3]))
     H5 = np.dot(H4, np.array(T[4]))
     H6 = np.dot(H5, np.array(T[5]))
+    H7 = np.dot(H6, np.array(T[6]))
 
     # Multiply the RRPRRR starting position frames by their corresponding transformation matricies
-    tFrame1_1 = np.dot(H1, Frame1_1)
-    tFrame1_2 = np.dot(H1, Frame1_2)
-    tFrame1_3 = np.dot(H1, Frame1_3)
-    tFrame1_4 = np.dot(H1, Frame1_4)
-    tFrame1_5 = np.dot(H1, Frame1_5)
-
-    tFrame2_1 = np.dot(H2, Frame2_1)
+    tFrame1 = np.dot(H2, Frame0)
+    tFrame2 = np.dot(H6, Frame0)
+    tFrame3 = np.dot(H7, Frame0)
+    tEEFrame1 = np.dot(H7, EEFrame1)
+    tEEFrame2 = np.dot(H7, EEFrame2)
+    tEEFrame3 = np.dot(H7, EEFrame3)
+    tEEFrame4 = np.dot(H7, EEFrame4)
 
     # Clear the plot
     axis.clear()
 
     # Set the axes
-    axis.set_xlim3d([-10, 10])
+    axis.set_xlim3d([-5, 5])
     axis.set_xlabel('X')
-    axis.set_ylim3d([-10, 10])
+    axis.set_ylim3d([-5, 5])
     axis.set_ylabel('Y')
-    axis.set_zlim3d([-10, 10])
+    axis.set_zlim3d([0, 5])
     axis.set_zlabel('Z')
     axis.set_title('Project 2 Simulation')
 
     # Plot necessary line segments
     axis.plot([Frame0[0]], [Frame0[1]], [Frame0[2]], 'bo')
-    axis.plot([Frame0[0], tFrame1_1[0]],[Frame0[1], tFrame1_1[1]],[Frame0[2], tFrame1_1[2]], 'b')
-    axis.plot([tFrame1_1[0], tFrame1_2[0]],[tFrame1_1[1], tFrame1_2[1]],[tFrame1_1[2], tFrame1_2[2]], 'b')
-    axis.plot([tFrame1_2[0], tFrame1_3[0]],[tFrame1_2[1], tFrame1_3[1]],[tFrame1_2[2], tFrame1_3[2]], 'b')
-    axis.plot([tFrame1_3[0], tFrame1_4[0]],[tFrame1_3[1], tFrame1_4[1]],[tFrame1_3[2], tFrame1_4[2]], 'b')
-    axis.plot([tFrame1_4[0], tFrame1_5[0]],[tFrame1_4[1], tFrame1_5[1]],[tFrame1_4[2], tFrame1_5[2]], 'b')
+    axis.plot([Frame0[0], Frame0_2[0]],[Frame0[1], Frame0_2[1]],[Frame0[2], Frame0_2[2]], 'b')
+    axis.plot([Frame0_2[0], tFrame1[0]],[Frame0_2[1], tFrame1[1]],[Frame0_2[2], tFrame1[2]], 'b')
 
-    axis.plot([tFrame2_1[0]], [tFrame2_1[1]], [tFrame2_1[2]], 'go')
-    #axis.plot([tFrame1_5[0], tFrame2_1[0]],[tFrame1_5[1], tFrame2_1[1]],[tFrame1_5[2], tFrame2_1[2]], 'g')
+    axis.plot([tFrame1[0]], [tFrame1[1]], [tFrame1[2]], 'go')
+    axis.plot([tFrame1[0], tFrame2[0]],[tFrame1[1], tFrame2[1]],[tFrame1[2], tFrame2[2]], 'g')
+ 
+    axis.plot([tFrame2[0]], [tFrame2[1]], [tFrame2[2]], 'ro')
+    axis.plot([tFrame2[0], tFrame3[0]],[tFrame2[1], tFrame3[1]],[tFrame2[2], tFrame3[2]], 'r')
+
+    axis.plot([tFrame3[0]], [tFrame3[1]], [tFrame3[2]], 'ko')
+    axis.plot([tEEFrame1[0], tEEFrame2[0]],[tEEFrame1[1], tEEFrame2[1]],[tEEFrame1[2], tEEFrame2[2]], 'k')
+    axis.plot([tEEFrame1[0], tEEFrame3[0]],[tEEFrame1[1], tEEFrame3[1]],[tEEFrame1[2], tEEFrame3[2]], 'k')
+    axis.plot([tEEFrame4[0], tEEFrame2[0]],[tEEFrame4[1], tEEFrame2[1]],[tEEFrame4[2], tEEFrame2[2]], 'k')
 
 # Run and save the simulation
 simAnimation = animation.FuncAnimation(simulation, animate, frames = 100, interval = 5)
-simAnimation.save('Project_2_Simulation.mp4', fps=30, extra_args=['-vcodec', 'libx264'])
+#simAnimation.save('Project_2_Simulation.mp4', fps=30, extra_args=['-vcodec', 'libx264'])
 plt.show()
