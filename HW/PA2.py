@@ -53,12 +53,12 @@ while(theta6 < -180 or theta6 > 180):
 #------------------THE FOLLOWING CODE ONLY PRINTS THE FINAL END EFFECTOR ORIENTATION----------------------
 
 # Construct DH table
-DH = [[0, 0, 0, radians(theta1)], [0, -pi/2, d2, pi/2 + radians(theta2)], [0, pi/2, d3, 0], [0, 0, 0, radians(theta4)], [0, -pi/2, 0, pi/2 + radians(theta5)], [0, pi/2, 0, radians(theta6)]]
+DH = [[0, 0, 0, radians(theta1)], [0, (-1*pi/2), d2, (pi/2) + radians(theta2)], [0, (pi/2), d3, 0], [0, 0, 0, radians(theta4)], [0, (-1*pi/2), 0, (pi/2) + radians(theta5)], [0, (pi/2), 0, radians(theta6)]]
 
 # Calculate homogeneous transform matricies
 T = []
 for i in range(6):
-    T.append([[cos(DH[i][3]), -1*sin(DH[i][3])*cos(DH[i][1]), sin(DH[i][3])*sin(DH[i][1]), DH[i][0]*cos(DH[i][3])], [sin(DH[i][3]), cos(DH[i][3])*cos(DH[i][1]), -1*cos(DH[i][3])*sin(DH[i][1]), DH[i][0]*sin(DH[i][3])], [0, sin(DH[i][1]), cos(DH[i][1]), DH[i][2]], [0, 0, 0, 1]])
+    T.append([[cos(DH[i][3]), -1*sin(DH[i][3]), 0, DH[i][0]], [sin(DH[i][3])*cos(DH[i][1]), cos(DH[i][3])*cos(DH[i][1]), -1*sin(DH[i][1]), -1*DH[i][2]*sin(DH[i][1])], [sin(DH[i][3])*sin(DH[i][1]), cos(DH[i][3])*sin(DH[i][1]), cos(DH[i][1]), cos(DH[i][1])*DH[i][2]], [0, 0, 0, 1]])
 
 # Decompose array into explicit homogeneous transformation matricies
 T01 = np.array(T[0])
@@ -85,7 +85,7 @@ H6 = np.dot(H5, np.array(T[5]))
 # Print final end effector position/orientation and transform matricies
 print("\n")
 print("Final end effector position and orientation matrix: ")
-print(np.round(H6, 4))
+print(np.round(H5, 4))
 print("\n")
 print("T01: ")
 print(np.round(T01, 4))
@@ -104,6 +104,8 @@ print(np.round(T45, 4))
 print("\n")
 print("T56: ")
 print(np.round(T56, 4))
+
+#---------CONSTRUCT JACOBIAN AND 
 
 # --------THE FOLLOWING CODE SIMULATES MOVEMENT TO DESIRED JOINT POSITIONS--------
 
@@ -131,15 +133,15 @@ axis.set_title('Project 2 Simulation')
 
 def animate(frame):
     # Construct DH table
-    DH = [[0, 0, 0, radians(theta1s[frame])], [0, -pi/2, d2, pi/2 + radians(theta2s[frame])], [0, pi/2, d3s[frame], 0], [0, 0, 0, radians(theta4s[frame])], [0, -pi/2, 0, pi/2 + radians(theta5s[frame])], [0, pi/2, 0, radians(theta6s[frame])],]
+    DH = [[0, 0, 0, radians(theta1s[frame])], [0, -pi/2, d2, pi/2 + radians(theta2s[frame])], [0, pi/2, d3s[frame], 0], [0, 0, 0, radians(theta4s[frame])], [0, -pi/2, 0, pi/2 + radians(theta5s[frame])], [0, pi/2, 0, radians(theta6s[frame])]]
 
     # Calculate transform matricies
     T = []
     for i in range(6):
-        T.append([[cos(DH[i][3]), -1*sin(DH[i][3])*cos(DH[i][1]), sin(DH[i][3])*sin(DH[i][1]), DH[i][0]*cos(DH[i][3])], [sin(DH[i][3]), cos(DH[i][3])*cos(DH[i][1]), -1*cos(DH[i][3])*sin(DH[i][1]), DH[i][0]*sin(DH[i][3])], [0, sin(DH[i][1]), cos(DH[i][1]), DH[i][2]], [0, 0, 0, 1]])
+        T.append([[cos(DH[i][3]), -1*sin(DH[i][3]), 0, DH[i][0]], [sin(DH[i][3])*cos(DH[i][1]), cos(DH[i][3])*cos(DH[i][1]), -1*sin(DH[i][1]), -1*DH[i][2]*sin(DH[i][1])], [sin(DH[i][3])*sin(DH[i][1]), cos(DH[i][3])*sin(DH[i][1]), cos(DH[i][1]), cos(DH[i][1])*DH[i][2]], [0, 0, 0, 1]])
 
 
-    # Assign Frames
+    # Assign frames necessary to draw robot body
     Frame0 = np.array([0, 0, 0, 1])
 
     Frame1_1 = np.array([-2, 0, 0, 1])
@@ -150,7 +152,12 @@ def animate(frame):
 
     Frame2_1 = np.array([1, 1, 2, 1])
 
-    Frame3_1 = np.array([1, 1, 2, 1])
+    #Frame3_1 = np.array([1, 1, 2, 1])
+
+    #Assign true frames
+    F0 = np.array([0, 0, 2, 1])
+    F1 = np.array([0, d2, 2, 1])
+    F2 = np.array([1, d2, 2, 1])
 
 
     # Find transformation matricies from frame 0 to every other frame
@@ -168,7 +175,7 @@ def animate(frame):
     tFrame1_4 = np.dot(H1, Frame1_4)
     tFrame1_5 = np.dot(H1, Frame1_5)
 
-    tFrame2_1 = np.dot(H3, Frame0)
+    tFrame2_1 = np.dot(H2, Frame2_1)
 
     # Clear the plot
     axis.clear()
@@ -190,8 +197,8 @@ def animate(frame):
     axis.plot([tFrame1_3[0], tFrame1_4[0]],[tFrame1_3[1], tFrame1_4[1]],[tFrame1_3[2], tFrame1_4[2]], 'b')
     axis.plot([tFrame1_4[0], tFrame1_5[0]],[tFrame1_4[1], tFrame1_5[1]],[tFrame1_4[2], tFrame1_5[2]], 'b')
 
-    axis.plot([tFrame1_5[0]], [tFrame1_5[1]], [tFrame1_5[2]], 'go')
-    axis.plot([tFrame1_5[0], tFrame2_1[0]],[tFrame1_5[1], tFrame2_1[1]],[tFrame1_5[2], tFrame2_1[2]], 'g')
+    axis.plot([tFrame2_1[0]], [tFrame2_1[1]], [tFrame2_1[2]], 'go')
+    #axis.plot([tFrame1_5[0], tFrame2_1[0]],[tFrame1_5[1], tFrame2_1[1]],[tFrame1_5[2], tFrame2_1[2]], 'g')
 
 # Run and save the simulation
 simAnimation = animation.FuncAnimation(simulation, animate, frames = 100, interval = 5)
