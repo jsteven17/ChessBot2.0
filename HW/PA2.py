@@ -77,12 +77,6 @@ T34 = np.array(T[3])
 T45 = np.array(T[4])
 T56 = np.array(T[5])
 
-# Assign Frames
-Frame0 = [0, 0, 0, 1]
-
-# Numpy frame
-F0 = np.array(Frame0)
-
 # Find transformation matricies from frame 0 to every other frame
 H1 = np.array(T[0])
 H2 = np.dot(H1, np.array(T[1]))
@@ -94,7 +88,7 @@ H6 = np.dot(H5, np.array(T[5]))
 # Print final end effector position/orientation and transform matricies
 print("\n")
 print("Final end effector position and orientation matrix: ")
-print(np.round(H5, 4))
+print(np.round(H6, 4))
 print("\n")
 print("T01: ")
 print(np.round(T01, 4))
@@ -116,15 +110,7 @@ print(np.round(T56, 4))
 
 #---------CONSTRUCT JACOBIAN AND CALCULATE VELOCITY KINEMATICS OF END EFFECTOR----
 
-# Assign angular velocities to jacobian
-w0 = H1[0:-1, 2]
-w1 = H2[0:-1, 2]
-w2 = 0
-w3 = H4[0:-1, 2]
-w4 = H5[0:-1, 2]
-w5 = H6[0:-1, 2]
-
-# Assign linear velocities to jacobian
+# Assign linear velocities to jacobian 
 v0 = np.cross(H1[0:-1, 2], H6[0:-1, 3])
 v1 = np.cross(H2[0:-1, 2], (H6[0:-1, 3] - H1[0:-1, 3]))
 v2 = H3[0:-1, 2]
@@ -132,27 +118,30 @@ v3 = np.cross(H4[0:-1, 2], (H6[0:-1, 3] - H3[0:-1, 3]))
 v4 = np.cross(H5[0:-1, 2], (H6[0:-1, 3] - H4[0:-1, 3]))
 v5 = np.cross(H6[0:-1, 2], (H6[0:-1, 3] - H5[0:-1, 3]))
 
+# Assign angular velocities to jacobian
+w0 = H1[0:-1, 2]
+w1 = H2[0:-1, 2]
+w2 = [0,0,0]
+w3 = H4[0:-1, 2]
+w4 = H5[0:-1, 2]
+w5 = H6[0:-1, 2]
+
 # Construct jacobian
-J = np.array([[v0, v1, v2, v3, v4, v5], [w0, w1, w2, w3, w4, w5]])
+J = np.array([[v0[0], v1[0], v2[0], v3[0], v4[0], v5[0]],[v0[1], v1[1], v2[1], v3[1], v4[1], v5[1]],[v0[2], v1[2], v2[2], v3[2], v4[2], v5[2]],[w0[0], w1[0], w2[0], w3[0], w4[0], w5[0]],[w0[1], w1[1], w2[1], w3[1], w4[1], w5[1]],[w0[2], w1[2], w2[2], w3[2], w4[2], w5[2]]])
 
 # Caculate qDot matrix from animation speed
 qDot = []
 for i in range(6):
     qDot.append((stepSizes[i][2]-stepSizes[i][1]) / .005)
 
-print("\n")
-print("qDOT:")
-print(qDot)
-print("\n")
-
 # Find end effector linear and angular velocities
-EElinear = np.dot(J[0,:], qDot)
-EEangular = np.dot(J[1,:], qDot)
+EElinear = np.dot(J[0:3,:], qDot)
+EEangular = np.dot(J[3:6,:], qDot)
 
-# Print jacobian and velocity dynamics of end effector
+# Print jacobian and velocity dynamics of end effector (Frame 6)
 print("\n")
 print("Jacobian: ")
-print(J)
+print(np.round(J, 4))
 print("\n")
 print("linear velocity of end effector: ")
 print(np.round(EElinear, 4))
@@ -240,5 +229,5 @@ def animate(frame):
 
 # Run and save the simulation
 simAnimation = animation.FuncAnimation(simulation, animate, frames = 100, interval = 5)
-#simAnimation.save('Project_2_Simulation.mp4', fps=30, extra_args=['-vcodec', 'libx264'])
+simAnimation.save('Project_2_Simulation.mp4', fps=30, extra_args=['-vcodec', 'libx264'])
 plt.show()
