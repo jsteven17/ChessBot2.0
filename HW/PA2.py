@@ -117,20 +117,20 @@ print(np.round(T56, 4))
 #---------CONSTRUCT JACOBIAN AND CALCULATE VELOCITY KINEMATICS OF END EFFECTOR----
 
 # Assign angular velocities to jacobian
-w0 = H1[0:-1, 3]
-w1 = H2[0:-1, 3]
+w0 = H1[0:-1, 2]
+w1 = H2[0:-1, 2]
 w2 = 0
-w3 = H4[0:-1, 3]
-w4 = H5[0:-1, 3]
-w5 = H6[0:-1, 3]
+w3 = H4[0:-1, 2]
+w4 = H5[0:-1, 2]
+w5 = H6[0:-1, 2]
 
 # Assign linear velocities to jacobian
-v0 = np.cross(H1[0:-1, 3], H6[0:-1, 3])
-v1 = np.cross(H2[0:-1, 3], (H6[0:-1, 3] - H1[0:-1, 3]))
-v2 = H3[0:-1, 3]
-v3 = np.cross(H4[0:-1, 3], (H6[0:-1, 3] - H3[0:-1, 3]))
-v4 = np.cross(H5[0:-1, 3], (H6[0:-1, 3] - H4[0:-1, 3]))
-v5 = np.cross(H6[0:-1, 3], (H6[0:-1, 3] - H5[0:-1, 3]))
+v0 = np.cross(H1[0:-1, 2], H6[0:-1, 3])
+v1 = np.cross(H2[0:-1, 2], (H6[0:-1, 3] - H1[0:-1, 3]))
+v2 = H3[0:-1, 2]
+v3 = np.cross(H4[0:-1, 2], (H6[0:-1, 3] - H3[0:-1, 3]))
+v4 = np.cross(H5[0:-1, 2], (H6[0:-1, 3] - H4[0:-1, 3]))
+v5 = np.cross(H6[0:-1, 2], (H6[0:-1, 3] - H5[0:-1, 3]))
 
 # Construct jacobian
 J = np.array([[v0, v1, v2, v3, v4, v5], [w0, w1, w2, w3, w4, w5]])
