@@ -50,6 +50,15 @@ while(theta5 < -25 or theta5 > 25):
 while(theta6 < -180 or theta6 > 180):
     theta6 = int(input("Please enter Theta 6 [-180 180]: "))
 
+# Get 100 evenly spaced values from user input for animation
+theta1s = np.linspace(0, theta1, 100)
+theta2s = np.linspace(0, theta2, 100)
+d3s = np.linspace(1, d3, 100)
+theta4s = np.linspace(0, theta4, 100)
+theta5s = np.linspace(0, theta5, 100)
+theta6s = np.linspace(0, theta6, 100)
+stepSizes = [theta1s, theta2s, d3s, theta4s, theta5s, theta6s]
+
 #------------------THE FOLLOWING CODE ONLY PRINTS THE FINAL END EFFECTOR ORIENTATION----------------------
 
 # Construct DH table
@@ -105,18 +114,53 @@ print("\n")
 print("T56: ")
 print(np.round(T56, 4))
 
-#---------CONSTRUCT JACOBIAN AND 
+#---------CONSTRUCT JACOBIAN AND CALCULATE VELOCITY KINEMATICS OF END EFFECTOR----
+
+# Assign angular velocities to jacobian
+w0 = H1[0:-1, 3]
+w1 = H2[0:-1, 3]
+w2 = 0
+w3 = H4[0:-1, 3]
+w4 = H5[0:-1, 3]
+w5 = H6[0:-1, 3]
+
+# Assign linear velocities to jacobian
+v0 = np.cross(H1[0:-1, 3], H6[0:-1, 3])
+v1 = np.cross(H2[0:-1, 3], (H6[0:-1, 3] - H1[0:-1, 3]))
+v2 = H3[0:-1, 3]
+v3 = np.cross(H4[0:-1, 3], (H6[0:-1, 3] - H3[0:-1, 3]))
+v4 = np.cross(H5[0:-1, 3], (H6[0:-1, 3] - H4[0:-1, 3]))
+v5 = np.cross(H6[0:-1, 3], (H6[0:-1, 3] - H5[0:-1, 3]))
+
+# Construct jacobian
+J = np.array([[v0, v1, v2, v3, v4, v5], [w0, w1, w2, w3, w4, w5]])
+
+# Caculate qDot matrix from animation speed
+qDot = []
+for i in range(6):
+    qDot.append((stepSizes[i][2]-stepSizes[i][1]) / .005)
+
+print("\n")
+print("qDOT:")
+print(qDot)
+print("\n")
+
+# Find end effector linear and angular velocities
+EElinear = np.dot(J[0,:], qDot)
+EEangular = np.dot(J[1,:], qDot)
+
+# Print jacobian and velocity dynamics of end effector
+print("\n")
+print("Jacobian: ")
+print(J)
+print("\n")
+print("linear velocity of end effector: ")
+print(np.round(EElinear, 4))
+print("\n")
+print("angular velocity of end effector: ")
+print(np.round(EEangular, 4))
 
 # --------THE FOLLOWING CODE SIMULATES MOVEMENT TO DESIRED JOINT POSITIONS--------
-
-# Get 100 evenly spaced values from user input for animation
-theta1s = np.linspace(0, theta1, 100)
-theta2s = np.linspace(0, theta2, 100)
-d3s = np.linspace(1, d3, 100)
-theta4s = np.linspace(0, theta4, 100)
-theta5s = np.linspace(0, theta5, 100)
-theta6s = np.linspace(0, theta6, 100)
-
 
 # Attaching 3D axis to the figure
 simulation = plt.figure()
@@ -187,10 +231,9 @@ def animate(frame):
     axis.plot([tFrame1[0]], [tFrame1[1]], [tFrame1[2]], 'go')
     axis.plot([tFrame1[0], tFrame2[0]],[tFrame1[1], tFrame2[1]],[tFrame1[2], tFrame2[2]], 'g')
  
-    axis.plot([tFrame2[0]], [tFrame2[1]], [tFrame2[2]], 'ro')
-    axis.plot([tFrame2[0], tFrame3[0]],[tFrame2[1], tFrame3[1]],[tFrame2[2], tFrame3[2]], 'r')
+    axis.plot([tFrame2[0]], [tFrame2[1]], [tFrame2[2]], 'ko')
+    axis.plot([tFrame2[0], tFrame3[0]],[tFrame2[1], tFrame3[1]],[tFrame2[2], tFrame3[2]], 'k')
 
-    axis.plot([tFrame3[0]], [tFrame3[1]], [tFrame3[2]], 'ko')
     axis.plot([tEEFrame1[0], tEEFrame2[0]],[tEEFrame1[1], tEEFrame2[1]],[tEEFrame1[2], tEEFrame2[2]], 'k')
     axis.plot([tEEFrame1[0], tEEFrame3[0]],[tEEFrame1[1], tEEFrame3[1]],[tEEFrame1[2], tEEFrame3[2]], 'k')
     axis.plot([tEEFrame4[0], tEEFrame2[0]],[tEEFrame4[1], tEEFrame2[1]],[tEEFrame4[2], tEEFrame2[2]], 'k')
